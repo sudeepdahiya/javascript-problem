@@ -22,3 +22,11 @@ const newPrint = debounce(printHello, 500)
 newPrint('sudeep', 17, 10)
 newPrint('dahiya', 12, 19)
 newPrint('yes yes', 97, 12)
+
+function* gen() {
+
+  yield 10
+  yield 13;
+}
+
+console.log(gen().next().next())
