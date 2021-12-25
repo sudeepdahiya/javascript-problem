@@ -20,8 +20,7 @@ class Heap{
         if (curIndex >= 1) {
             let parentIndex = this.getParentIndex(curIndex);
             while(parentIndex >= 0) {
-                const diff = this.compareFunc( this.data[parentIndex], this.data[curIndex]);
-                if (diff ){
+                if (this.compareFunc( this.data[parentIndex], this.data[curIndex])){
                     this.swap(curIndex, parentIndex)
                 }
                 curIndex = parentIndex;
@@ -31,7 +30,10 @@ class Heap{
         return true;
     }
     peek(){
-        return this.data[0];
+        if (this.data.length > 0) {
+            return this.data[0];
+        }    
+        return null;
     }
     pop(){
         if(this.data.length === 0){
@@ -75,8 +77,8 @@ class Heap{
 }
 
 // function: define max or min heap. 
-const minHeap = new Heap((a,b) =>{
-    if (a[1] - b[1] > 0) {
+const minHeap = new Heap((parent, child) =>{
+    if (parent[1] - child[1] > 0) {
         return true
     }
     return false;
