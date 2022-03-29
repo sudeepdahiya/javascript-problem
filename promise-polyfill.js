@@ -1,60 +1,60 @@
 
+class myPromsie {
+    #thenCallback = [];
+    #catchCallback = [];
+    #finallyCallback = () => {}
+    state = 'PENDING';
+    
+    constructor(callback){
+        callback(this.#resolve, this.#reject)
+    }
 
+    #doneCallback = (callbacks, currData) => {
+        for(let i = 0; i < callbacks.length; i++){
+            currData = callbacks[i](currData)
+        }
+        this.#finallyCallback();
+    }
+    
+    #resolve = (data) => {
+        this.state = 'SUCCESS';
+        this.#doneCallback(this.#thenCallback, data);
+    }
 
-function myPromise(func) {
-  const STATUS = {
-    PENDING: 'PENDING',
-    FAIL: 'FAIL',
-    SUCCESS: 'SUCCESS',
-  }
-  this.status = STATUS.PENDING;
-  this.then = function (thenFun) {
-    thenFunList.push(thenFun);
-    return this;
-  }
-  this.catch = function (errorFun) {
-    catchFunList.push(errorFun)
-  }
+    #reject = (error) => {
+        this.state = 'ERROR';
+        this.#doneCallback(this.#catchCallback, error);
+    }
+    then = function(callback){
+        this.#thenCallback.push(callback)
+        return this;    
+    }
 
-  let thenFunList = [];
-  let catchFunList = [];
+    catch = function(callback){
+        this.#catchCallback.push(callback)
+        return this;
+    }
 
-
-  function reject(error) {
-    catchFunList.map(catchFunc => {
-      catchFunc(error);
-    })
-    status = STATUS.FAIL
-  }
-  function resolve(...arg) {
-    let lastResult;
-    thenFunList.map((thenFun, i) => {
-      if (i === 0) {
-        lastResult = thenFun(...arg);
-      } else {
-        thenFun(lastResult);
-      }
-    })
-    status = STATUS.SUCCESS
-  }
-
-  func(resolve, reject);
+    finally = function(callback){
+        this.#finallyCallback = callback;
+        return this;
+    }
 }
 
-const temp = (resolve, reject) => {
-  setTimeout(() => {
-    resolve('yes it is done')
-  }, 1000)
-}
+const promise = new myPromsie(function(resolve, reject) {
+    setTimeout(() => {
+    	resolve('success')
+    }, 2000)
+})
+console.log('promise',promise)
 
-const obj = new myPromise(temp);
-console.log(obj)
-console.log(obj instanceof myPromise)
-obj.then((res) => {
-  console.log('then 1', res)
-  return `${res} - yes returning`
-}).then((res) => {
-  console.log('then 2', res)
-}).catch((error) => {
-  console.log('error', error)
+promise.then((res) => {
+	console.log('res', res)
+    return res+'hi world'
+}).then(res => {
+    console.log('res2', res)
+}).catch(e => {
+    console.log('error', e)
+}).finally(() => {
+    console.log('this is finally')
 })
