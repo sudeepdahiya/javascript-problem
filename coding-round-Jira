@@ -1,0 +1,97 @@
+function fetchAllFeatures() {
+  // in reality, this would have been a `fetch` call:
+  // `fetch("/api/features/all")`
+  console.log('fetchAllFeatures')
+  return new Promise((resolve, reject) => {
+    const sampleFeatures = {
+          "extended-summary": true,
+          "feedback-dialog": true
+    };
+    setTimeout(resolve, 100, sampleFeatures);
+    /* setTimeout(reject, 100, 'called failed'); */
+  });
+}
+
+
+
+function featureFlagFactory (){
+  let featureState = null;
+  let apiIsCalledPromise = null;
+  let lastUpdateTime = null;
+  
+  function getValue(featureKey, defaultValue){
+  				let value = defaultValue;
+          if (featureState && featureState.hasOwnProperty(featureKey)) {
+            value = featureState[featureKey]
+          }
+          if(lastUpdateTime > new Date(new Date().now() + 5000)){
+        		featureState = null;
+  					apiIsCalledPromise = null; 
+        	}
+          return value
+  }
+  
+  
+  return function(featureKey, defaultValue){
+    if (featureState) {
+      return new Promise((resolve) => {
+        return  featureState[featureKey];
+      })
+    } else if (apiIsCalledPromise) {
+      return new Promise(resolve => {
+         apiIsCalledPromise.then(data => {
+            featureState = data;
+            resolve(getValue(featureKey, defaultValue));
+         }).catch(() => {
+         	resolve(getValue(featureKey, defaultValue));
+         })
+       })
+    } else {
+     apiIsCalledPromise = fetchAllFeatures();
+     return new Promise(resolve => {
+       apiIsCalledPromise.then(data => {
+          featureState = data;
+           // console.log('value', value;
+           lastUpdateTime = new Date();
+          resolve(getValue(featureKey, defaultValue));
+       }).catch((e) => {
+       	  console.log('error', e)
+          lastUpdateTime = new Date();
+         	resolve(getValue(featureKey, defaultValue));
+        })
+     })
+    }
+  }
+}
+
+getFeatureState = featureFlagFactory()
+
+
+
+function showExtendedSummary(){
+	console.log('showExtendedSummary')
+} 
+
+function showBriefSummary(){
+	console.log('showBriefSummary')
+} 
+
+function makeFeedbackButtonVisible(){
+	console.log('makeFeedbackButtonVisible')
+} 
+
+getFeatureState("extended-summary", false)
+  .then(function(isEnabled) {
+    if (isEnabled) {
+      showExtendedSummary();
+    } else {
+      showBriefSummary();
+    }
+});
+
+getFeatureState("feedback-dialog", false)
+  .then(function(isEnabled) {
+    if (isEnabled) {
+      makeFeedbackButtonVisible();
+    }
+});
